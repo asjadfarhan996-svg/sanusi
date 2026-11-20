@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>test</title></head>
+<body style="font-family:sans-serif;padding:16px;font-size:18px">
+<button id="b" style="font-size:20px;padding:12px 20px">ടെസ്റ്റ് ചെയ്യുക</button>
+<pre id="o" style="white-space:pre-wrap;word-break:break-all;margin-top:16px">ബട്ടൺ അമർത്തൂ</pre>
+<script>
+var o=document.getElementById('o');
+document.getElementById('b').onclick=function(){
+  o.textContent='അയക്കുന്നു...';
+  var t0=Date.now();
+  fetch('https://sanusi-ai.asjadfarhan996.workers.dev',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify([{role:'user',text:'ഹലോ'}])})
+  .then(function(r){
+    o.textContent='സ്റ്റാറ്റസ്: '+r.status+' ('+(Date.now()-t0)+' ms)\n';
+    return r.text();
+  })
+  .then(function(t){o.textContent+='\n'+t.slice(0,1500)+'\n\n('+(Date.now()-t0)+' ms)'})
+  .catch(function(e){o.textContent='പിശക്: '+e})
+};
+</script></body></html>
