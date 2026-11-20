@@ -77,6 +77,7 @@ body{font-family:system-ui,-apple-system,"Noto Sans Malayalam",sans-serif;color:
 </div>
 
 <script>
+  (function(){
 var API='https://sanusi-ai.asjadfarhan996.workers.dev';
 
 var $=function(id){return document.getElementById(id)};
@@ -330,7 +331,7 @@ stage.addEventListener('mousemove',function(){if(stage.classList.contains('full'
 stage.addEventListener('click',function(e){
   if(!stage.classList.contains('full')||e.target===xit)return;
   showHint();micBtn.onclick();
-});
+})();
 </script>
 </body>
 </html>
