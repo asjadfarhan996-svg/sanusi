@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SANUSI</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:system-ui,-apple-system,"Noto Sans Malayalam",sans-serif;color:#fff;background:#060d22;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.stage{height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;background:radial-gradient(circle at 50% 38%,rgba(74,168,255,.28),transparent 55%),linear-gradient(180deg,#0a1636,#060d22)}
+.top{width:100%;max-width:900px;display:flex;justify-content:space-between;align-items:center;padding:10px 16px;gap:10px}
+.top h1{font-size:1.3rem;font-weight:800;letter-spacing:2px}
+.status{font-size:1rem;opacity:.9;flex:1;text-align:center}
+.live{background:#2f86ff;border-radius:6px;padding:3px 10px;font-size:.85rem;font-weight:700}
+.anchor{flex:1;min-height:0;width:100%;display:flex;justify-content:center}
+.anchor svg{height:100%;max-width:100%}
+.sub{width:calc(100% - 28px);max-width:900px;background:rgba(10,25,70,.7);border-left:5px solid #4aa8ff;border-radius:10px;padding:8px 14px;max-height:16vh;overflow-y:auto;font-size:1.1rem;line-height:1.5;white-space:pre-wrap;margin-bottom:10px}
+.sub small{display:block;opacity:.65;font-size:.85rem;margin-bottom:2px}
+#mic{background:#2f86ff;color:#fff;font-size:1.25rem;font-weight:700;border:2px solid #fff;border-radius:999px;padding:0 28px;min-height:64px;cursor:pointer;box-shadow:0 4px 22px rgba(47,134,255,.6)}
+#mic.on{background:#e5484d;animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(229,72,77,.6)}50%{box-shadow:0 0 0 16px rgba(229,72,77,0)}}
+.note{font-size:.8rem;opacity:.6;padding:8px 12px 12px;text-align:center}
+#fs{background:rgba(255,255,255,.12);color:#fff;border:1px solid rgba(255,255,255,.35);border-radius:10px;padding:6px 12px;font-size:.9rem;cursor:pointer;white-space:nowrap}
+#xit{display:none;position:fixed;top:14px;right:14px;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.4);background:rgba(0,0,0,.4);color:#fff;font-size:1.1rem;cursor:pointer;opacity:0;transition:opacity .4s;z-index:5;padding:0}
+.full #xit{display:block}
+.full.hint #xit{opacity:.8}
+.full .top,.full .sub,.full .note,.full #mic{display:none}
+.full .anchor{height:100vh;height:100dvh;padding:8px 0}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="top"><h1>SANUSI</h1><span class="status" id="status"></span><span class="live">തത്സമയം</span><button id="fs">⛶ പൂർണ്ണ സ്ക്രീൻ</button></div>
+  <div class="anchor">
+<svg id="svg" viewBox="0 0 240 360" role="img" aria-label="വെളുത്ത മനുഷ്യരൂപ റോബോട്ട്">
+<defs>
+<linearGradient id="gW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dde4ec"/></linearGradient>
+</defs>
+<g id="bodyG">
+<rect x="94" y="266" width="52" height="38" rx="8" fill="#15181e"/>
+<line x1="96" y1="276" x2="144" y2="276" stroke="#3a404b" stroke-width="2"/><line x1="96" y1="285" x2="144" y2="285" stroke="#3a404b" stroke-width="2"/><line x1="96" y1="294" x2="144" y2="294" stroke="#3a404b" stroke-width="2"/>
+<path d="M94,274 C84,282 84,294 94,300" stroke="#2a2f38" stroke-width="3" fill="none"/><path d="M146,274 C156,282 156,294 146,300" stroke="#2a2f38" stroke-width="3" fill="none"/>
+<path d="M72,304 C72,298 96,296 120,296 C144,296 168,298 168,304 L176,338 C176,352 150,358 120,358 C90,358 64,352 64,338 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.4"/>
+<path d="M80,306 C96,302 112,301 120,301" stroke="#fff" stroke-width="4" fill="none" opacity=".85" stroke-linecap="round"/>
+<path d="M68,330 C96,340 144,340 172,330" stroke="#b9c3cf" stroke-width="1.6" fill="none"/>
+<circle cx="120" cy="322" r="5" fill="#e6ebf1" stroke="#a9b4c1" stroke-width="1.3"/>
+<rect x="106" y="126" width="28" height="34" rx="6" fill="#15181e"/>
+<line x1="108" y1="136" x2="132" y2="136" stroke="#3a404b" stroke-width="2"/><line x1="108" y1="144" x2="132" y2="144" stroke="#3a404b" stroke-width="2"/>
+<ellipse cx="120" cy="158" rx="40" ry="10" fill="#0f1116"/>
+<path d="M62,172 C62,158 88,150 120,150 C152,150 178,158 178,172 L184,226 C184,250 168,266 150,270 L90,270 C72,266 56,250 56,226 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.4"/>
+<path d="M70,168 C84,160 104,156 120,156" stroke="#fff" stroke-width="5" fill="none" opacity=".85" stroke-linecap="round"/>
+<path d="M58,226 C90,238 150,238 182,226" stroke="#b9c3cf" stroke-width="1.6" fill="none"/>
+<circle cx="120" cy="196" r="8" fill="#e6ebf1" stroke="#a9b4c1" stroke-width="1.5"/><circle id="core" cx="120" cy="196" r="3" fill="#4aa8ff"/>
+<circle cx="82" cy="190" r="1.8" fill="#aab4c0"/><circle cx="158" cy="190" r="1.8" fill="#aab4c0"/>
+<g id="armsHost"></g>
+<circle cx="52" cy="176" r="17" fill="#14171d"/>
+<circle cx="188" cy="176" r="17" fill="#14171d"/>
+<path d="M34,174 C34,154 62,150 72,168 L62,182 C50,174 40,176 34,174 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>
+<path d="M206,174 C206,154 178,150 168,168 L178,182 C190,174 200,176 206,174 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>
+</g>
+<g id="headG">
+<rect x="68" y="52" width="14" height="42" rx="7" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>
+<rect x="158" y="52" width="14" height="42" rx="7" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>
+<path d="M82,32 C82,6 158,6 158,32 L160,92 C160,118 144,132 120,132 C96,132 80,118 80,92 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.4"/>
+<path d="M94,40 C94,32 146,32 146,40 L148,90 C148,112 136,122 120,122 C104,122 92,112 92,90 Z" fill="#0b0d12"/>
+<path d="M98,42 C112,38 128,38 142,42 L144,58 C128,52 112,52 96,58 Z" fill="#fff" opacity=".14"/>
+<path d="M88,24 C100,14 140,14 152,24" stroke="#fff" stroke-width="4" fill="none" opacity=".85" stroke-linecap="round"/>
+<g id="face"></g>
+</g>
+</svg>
+  </div>
+  <div class="sub" id="sub"><small id="qline">SANUSI</small><span id="ans">ഞാൻ SANUSI. താഴെയുള്ള ബട്ടൺ ഒരുതവണ അമർത്തി എന്ത് കാര്യവും ചോദിച്ചോളൂ.</span></div>
+  <button id="mic">🎤 അമർത്തി സംസാരിക്കൂ</button>
+  <p class="note">ഉത്തരങ്ങൾ നിർമിതബുദ്ധി തയ്യാറാക്കുന്നതാണ്</p>
+  <button id="xit" aria-label="പുറത്തുകടക്കുക">✕</button>
+</div>
+
+<script>
+var API='https://script.google.com/macros/s/AKfycbxs7zUkK-WzdmKzE0_Kxw4JN4XOwqfRtO2j10qCndChYZgw_QZY0Xfc6PMjzVY6Ybbetg/exec';
+
+var $=function(id){return document.getElementById(id)};
+var stage=$('stage'),ansEl=$('ans'),qline=$('qline'),sub=$('sub'),micBtn=$('mic'),statusEl=$('status');
+
+function finger(x,len){return '<line x1="'+x+'" y1="331" x2="'+x+'" y2="'+(331+len)+'" stroke="#9aa6b4" stroke-width="7.4" stroke-linecap="round"/><line x1="'+x+'" y1="331" x2="'+x+'" y2="'+(331+len)+'" stroke="#fff" stroke-width="5.4" stroke-linecap="round"/><line x1="'+(x-2)+'" y1="'+(331+len*0.55)+'" x2="'+(x+2)+'" y2="'+(331+len*0.55)+'" stroke="#9aa6b4" stroke-width="1"/>'}
+function arm(id){
+ return '<g id="ua'+id+'">'+
+ '<path d="M30,184 C26,214 25,232 27,246 L51,246 C54,232 57,212 62,186 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>'+
+ '<path d="M35,192 C33,212 32,228 33,240" stroke="#fff" stroke-width="3" fill="none" opacity=".8"/>'+
+ '<g id="fa'+id+'">'+
+  '<rect x="24" y="243" width="30" height="22" rx="8" fill="#14171d"/>'+
+  '<line x1="26" y1="250" x2="52" y2="250" stroke="#3a404b" stroke-width="2"/><line x1="26" y1="257" x2="52" y2="257" stroke="#3a404b" stroke-width="2"/>'+
+  '<path d="M28,262 C26,282 26,298 29,314 L53,314 C55,298 56,282 54,262 Z" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>'+
+  '<rect x="26" y="312" width="28" height="20" rx="7" fill="url(#gW)" stroke="#b9c3cf" stroke-width="1.2"/>'+
+  finger(31,18)+finger(37.5,22)+finger(44,20)+finger(50.5,15)+
+  '<line x1="54" y1="318" x2="61" y2="333" stroke="#9aa6b4" stroke-width="7.4" stroke-linecap="round"/><line x1="54" y1="318" x2="61" y2="333" stroke="#fff" stroke-width="5.4" stroke-linecap="round"/>'+
+ '</g></g>';
+}
+$('armsHost').innerHTML=arm('L')+'<g transform="translate(240 0) scale(-1 1)">'+arm('R')+'</g>';
+var ang={L:[0,0],R:[0,0]},tgt={L:[0,0],R:[0,0]};
+var REST={L:[0,0],R:[0,0]};
+var GEST=[REST,{L:[4,-70],R:[0,0]},{L:[0,0],R:[4,-70]},{L:[14,-25],R:[14,-25]},{L:[4,-50],R:[4,-50]},{L:[10,-30],R:[0,-80]},{L:[0,-80],R:[10,-30]}];
+function applyArm(s,a1,a2){
+  $('ua'+s).setAttribute('transform','rotate('+a1.toFixed(2)+' 50 176)');
+  $('fa'+s).setAttribute('transform','rotate('+a2.toFixed(2)+' 39 254)');
+}
+
+var B='#4aa8ff';
+function face(k){
+ var dot=function(x,y,r){return '<circle cx="'+x+'" cy="'+y+'" r="'+(r*2)+'" fill="'+B+'" opacity=".25"/><circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="'+B+'"/><circle cx="'+x+'" cy="'+y+'" r="'+(r*0.4)+'" fill="#d9efff"/>'};
+ var arc=function(d){return '<path d="'+d+'" stroke="'+B+'" stroke-width="3.2" fill="none" stroke-linecap="round"/>'};
+ var eyesArc=arc('M99,83 Q106,73 113,83')+arc('M127,83 Q134,73 141,83');
+ if(k==='s')return eyesArc+arc('M110,101 Q120,109 130,101');
+ if(k==='l')return '<g id="eyes">'+dot(106,80,5.4)+dot(134,80,5.4)+'</g>'+arc('M97,66 L115,63')+arc('M125,63 L143,66');
+ if(k==='t')return '<g id="eyes">'+dot(110,74,3.4)+dot(138,74,3.4)+'</g>'+arc('M98,64 L114,59')+arc('M126,63 L142,63')+'<circle cx="170" cy="40" r="2.6" fill="'+B+'"/><circle cx="180" cy="31" r="3.4" fill="'+B+'"/><circle cx="191" cy="20" r="4.2" fill="'+B+'"/>';
+ if(k[0]==='p'){
+   var b='';for(var i=0;i<5;i++)b+='<rect class="bar" x="'+(108+i*6)+'" y="98" width="3.4" height="4" rx="1.7" fill="'+B+'"/>';
+   return (k==='p1'?eyesArc:'<g id="eyes">'+dot(106,80,3.6)+dot(134,80,3.6)+'</g>')+b;
+ }
+ return '<g id="eyes">'+dot(106,80,3.6)+dot(134,80,3.6)+'</g>';
+}
+var curE='',bars=[];
+var faceG=$('face'),headG=$('headG'),bodyG=$('bodyG'),core=$('core');
+function setExpr(k){if(k===curE)return;curE=k;faceG.innerHTML=face(k);bars=[].slice.call(faceG.querySelectorAll('.bar'))}
+var talking=false,busy=false,listening=false,mood=0;
+function key(){return listening?'l':talking?(mood?'p1':'p0'):busy?'t':'s'}
+function refresh(){setExpr(key())}
+function talk(on){talking=on;refresh()}
+refresh();
+
+var o=0,oT=0,nextT=0,nextG=0,nextMood=0,nextBlink=1500,blinkStart=-1,tilt=0;
+var bn=[0,1,2,3,4].map(function(){return Math.random()*6});
+function frame(t){
+  if(talking){
+    if(t>nextT){oT=Math.random()<.16?0.04:0.3+Math.random()*0.7;nextT=t+70+Math.random()*120}
+    if(t>nextG){var g=GEST[Math.floor(Math.random()*GEST.length)];tgt.L=g.L.slice();tgt.R=g.R.slice();nextG=t+900+Math.random()*1100}
+    if(t>nextMood){mood=Math.random()<.3?1:0;refresh();nextMood=t+1800+Math.random()*2200}
+  }else{
+    oT=0;
+    if(listening){tgt.L=[2,-20];tgt.R=[2,-20]}
+    else if(busy){tgt.L=[0,0];tgt.R=[4,-110]}
+    else{tgt.L=[0,0];tgt.R=[0,0]}
+  }
+  o+=(oT-o)*0.38;
+  ['L','R'].forEach(function(s,i){
+    for(var j=0;j<2;j++)ang[s][j]+=(tgt[s][j]-ang[s][j])*0.1;
+    var sw=Math.sin(t/1700+i*1.3)*1.2,beat=(talking&&ang[s][1]<-10)?-o*4:0;
+    applyArm(s,ang[s][0]+sw*0.5,ang[s][1]+sw+beat);
+  });
+  bars.forEach(function(r,i){
+    var n=(Math.sin(t/80+bn[i]*1.7+i)+1)/2,h=2.5+o*(0.4+0.6*n)*14;
+    r.setAttribute('height',h.toFixed(1));r.setAttribute('y',(100-h/2).toFixed(1));
+  });
+  var tiltT=listening?-5:busy?4:0;tilt+=(tiltT-tilt)*0.1;
+  var rot=tilt+Math.sin(t/1900)*0.6+(talking?Math.sin(t/300)*1.1*(0.5+o):0);
+  headG.setAttribute('transform','translate(0 '+(Math.sin(t/2300)*0.8-(talking?o:0)).toFixed(2)+') rotate('+rot.toFixed(2)+' 120 130)');
+  bodyG.setAttribute('transform','translate(0 '+(Math.sin(t/1900)*0.8).toFixed(2)+')');
+  core.setAttribute('r',(3+o*2+Math.sin(t/600)*0.6).toFixed(2));
+  if(blinkStart<0&&t>nextBlink)blinkStart=t;
+  var sc=1;
+  if(blinkStart>=0){var p=(t-blinkStart)/170;if(p>=1){blinkStart=-1;nextBlink=t+2200+Math.random()*3800}else sc=1-Math.sin(Math.PI*p)*0.92}
+  var eyes=$('eyes');
+  if(eyes)eyes.setAttribute('transform','translate(0 80) scale(1 '+sc.toFixed(3)+') translate(0 -80)');
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+var history=[];
+var auto=false,speaking=false,restartT=null,ssCount=0,talkTimer=null;
+var SS=window.speechSynthesis||null;
+var SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
+var rec=null;
+function setStatus(t){statusEl.textContent=t||''}
+
+function micLabel(){
+  micBtn.classList.toggle('on',listening);
+  micBtn.textContent=listening?'🎤 കേൾക്കുന്നു… (നിർത്താൻ അമർത്തൂ)':(auto?'🎤 തുടർച്ചയായി കേൾക്കുന്നു (നിർത്താൻ അമർത്തൂ)':'🎤 അമർത്തി സംസാരിക്കൂ');
+}
+function maybeListen(){
+  clearTimeout(restartT);
+  if(!auto||!rec||busy||listening||speaking||talking)return;
+  restartT=setTimeout(function(){
+    if(!auto||busy||listening||speaking||talking)return;
+    try{rec.start()}catch(e){}
+  },800);
+}
+function setupRec(){
+  if(!SR)return;
+  rec=new SR();rec.lang='ml-IN';rec.interimResults=true;rec.continuous=false;
+  rec.onstart=function(){listening=true;setStatus('കേൾക്കുന്നു…');micLabel();refresh()};
+  rec.onend=function(){listening=false;if(!busy&&!speaking)setStatus('');micLabel();refresh();maybeListen()};
+  rec.onerror=function(e){
+    if(e.error==='not-allowed'||e.error==='service-not-allowed'){
+      auto=false;micLabel();
+      ansEl.textContent='മൈക്ക് ഉപയോഗിക്കാൻ അനുമതി കിട്ടിയില്ല. ബ്രൗസറിൽ മൈക്ക് "അനുവദിക്കുക" എന്ന് ആക്കൂ. ക്രോമിൽ തുറക്കണം.';
+    }
+  };
+  rec.onresult=function(e){
+    var t='',fin=false;
+    for(var i=e.resultIndex;i<e.results.length;i++){t+=e.results[i][0].transcript;if(e.results[i].isFinal)fin=true}
+    if(fin)ask(t);else qline.textContent='കേൾക്കുന്നത്: '+t;
+  };
+}
+setupRec();
+
+function ssSay(chunk){
+  var u=new SpeechSynthesisUtterance(chunk);
+  u.lang=/[\u0d00-\u0d7f]/.test(chunk)?'ml-IN':(/[\u0600-\u06ff]/.test(chunk)?'ar-SA':'en-IN');
+  u.onstart=function(){speaking=true;talk(true)};
+  u.onend=u.onerror=function(){
+    ssCount--;
+    if(ssCount<=0){ssCount=0;speaking=false;talk(false);if(!busy)setStatus('');maybeListen()}
+  };
+  ssCount++;SS.speak(u);
+}
+function speak(text){
+  if(!SS){
+    talk(true);clearTimeout(talkTimer);
+    talkTimer=setTimeout(function(){talk(false);maybeListen()},Math.min(9000,text.length*45));
+    return;
+  }
+  var parts=text.match(/[^.!?।\n]+[.!?।]*\s*/g)||[text];
+  var buf='';
+  parts.forEach(function(p){
+    buf+=p;
+    if(buf.length>=25){ssSay(buf.trim());buf=''}
+  });
+  if(buf.trim())ssSay(buf.trim());
+}
+function stopAll(){
+  if(SS)try{SS.cancel()}catch(e){}
+  ssCount=0;speaking=false;clearTimeout(talkTimer);talk(false);
+}
+
+function onOk(r){
+  busy=false;
+  if(r&&r.ok){
+    var ans=String(r.text).replace(/[*#_`]/g,'').trim();
+    if(!ans)ans='ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കാമോ?';
+    ansEl.textContent=ans;sub.scrollTop=0;
+    history.push({role:'model',text:ans});
+    setStatus('പറയുന്നു…');
+    speak(ans);
+  }else{
+    history.pop();
+    ansEl.textContent=(r&&r.msg==='limit')?'സൗജന്യ പരിധി തീർന്നു. അല്പം കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ.':'ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കൂ.';
+    setStatus('');
+  }
+  refresh();
+  if(!(r&&r.ok))maybeListen();
+}
+function onFail(){
+  busy=false;history.pop();
+  ansEl.textContent='ക്ഷമിക്കണം, ബന്ധപ്പെടാൻ കഴിഞ്ഞില്ല. ഒന്നുകൂടി ചോദിക്കൂ.';
+  setStatus('');refresh();maybeListen();
+}
+function ask(text){
+  text=(text||'').trim();
+  if(!text||busy)return;
+  busy=true;talking=false;refresh();
+  qline.textContent='ചോദ്യം: '+text;
+  ansEl.textContent='';setStatus('ആലോചിക്കുന്നു…');
+  history.push({role:'user',text:text});
+  while(history.length>9)history.splice(0,2);
+  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(history)})
+    .then(function(x){return x.json()})
+    .then(onOk)
+    .catch(onFail);
+}
+
+micBtn.onclick=function(){
+  if(!SR){ansEl.textContent='ഈ ബ്രൗസറിൽ ശബ്ദത്തിൽ ചോദിക്കാൻ കഴിയില്ല. ക്രോമിൽ തുറക്കൂ.';return}
+  if(listening){auto=false;clearTimeout(restartT);try{rec.stop()}catch(e){};micLabel();return}
+  if(busy)return;
+  auto=true;
+  stopAll();
+  if(SS)try{SS.speak(new SpeechSynthesisUtterance(''))}catch(e){}
+  micLabel();
+  try{rec.start()}catch(e){}
+};
+
+var fsBtn=$('fs'),xit=$('xit'),hintT=null;
+function showHint(){stage.classList.add('hint');clearTimeout(hintT);hintT=setTimeout(function(){stage.classList.remove('hint')},3000)}
+function enterFull(){
+  stage.classList.add('full');
+  try{var r=document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();if(r&&r.catch)r.catch(function(){})}catch(e){}
+  showHint();
+}
+function exitFull(){
+  stage.classList.remove('full');stage.classList.remove('hint');
+  try{var r=document.exitFullscreen&&document.exitFullscreen();if(r&&r.catch)r.catch(function(){})}catch(e){}
+}
+fsBtn.onclick=enterFull;
+xit.onclick=function(e){e.stopPropagation();exitFull()};
+document.addEventListener('fullscreenchange',function(){if(!document.fullscreenElement)stage.classList.remove('full')});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')exitFull()});
+stage.addEventListener('mousemove',function(){if(stage.classList.contains('full'))showHint()});
+stage.addEventListener('click',function(e){
+  if(!stage.classList.contains('full')||e.target===xit)return;
+  showHint();micBtn.onclick();
+});
+</script>
+</body>
+</html>
