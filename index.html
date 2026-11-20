@@ -77,7 +77,6 @@ body{font-family:system-ui,-apple-system,"Noto Sans Malayalam",sans-serif;color:
 </div>
 
 <script>
-  (function(){
 var API='https://sanusi-ai.asjadfarhan996.workers.dev';
 
 var $=function(id){return document.getElementById(id)};
@@ -166,7 +165,7 @@ function frame(t){
 }
 requestAnimationFrame(frame);
 
-var history=[];
+var hist=[];
 var auto=false,speaking=false,restartT=null,ssCount=0,talkTimer=null;
 var SS=window.speechSynthesis||null;
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition||null;
@@ -227,8 +226,8 @@ function ask(text){
   busy=true;talking=false;refresh();
   qline.textContent='ചോദ്യം: '+text;
   ansEl.textContent='';setStatus('ആലോചിക്കുന്നു…');
-  history.push({role:'user',text:text});
-  while(history.length>9)history.splice(0,2);
+  hist.push({role:'user',text:text});
+  while(hist.length>9)hist.splice(0,2);
 
   var full='',buffer='',first=true,st={n:0,did:false};
   function pump(final){
@@ -248,7 +247,7 @@ function ask(text){
     }
   }
   function fail(code){
-    busy=false;history.pop();
+    busy=false;hist.pop();
     ansEl.textContent=(code===429)?'സൗജന്യ പരിധി തീർന്നു. അല്പം കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ.':'ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കൂ.';
     setStatus('');refresh();maybeListen();
   }
@@ -256,7 +255,7 @@ function ask(text){
     var ans=clean(full).trim();
     if(!ans){fail(0);return}
     ansEl.textContent=ans;
-    history.push({role:'model',text:ans});
+    hist.push({role:'model',text:ans});
     pump(true);
     busy=false;refresh();
     if(!SS){
@@ -275,7 +274,7 @@ function ask(text){
     }catch(e){}
   }
 
-  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(history)})
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(hist)})
   .then(function(resp){
     if(!resp.ok){fail(resp.status);return}
     var reader=resp.body.getReader(),dec=new TextDecoder();
@@ -331,7 +330,7 @@ stage.addEventListener('mousemove',function(){if(stage.classList.contains('full'
 stage.addEventListener('click',function(e){
   if(!stage.classList.contains('full')||e.target===xit)return;
   showHint();micBtn.onclick();
-})();
+});
 </script>
 </body>
 </html>
