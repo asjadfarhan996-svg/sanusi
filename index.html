@@ -77,7 +77,7 @@ body{font-family:system-ui,-apple-system,"Noto Sans Malayalam",sans-serif;color:
 </div>
 
 <script>
-var API='https://script.google.com/macros/s/AKfycbxs7zUkK-WzdmKzE0_Kxw4JN4XOwqfRtO2j10qCndChYZgw_QZY0Xfc6PMjzVY6Ybbetg/exec';
+var API='https://sanusi-ai.asjadfarhan996.workers.dev';
 
 var $=function(id){return document.getElementById(id)};
 var stage=$('stage'),ansEl=$('ans'),qline=$('qline'),sub=$('sub'),micBtn=$('mic'),statusEl=$('status');
@@ -178,9 +178,9 @@ function micLabel(){
 }
 function maybeListen(){
   clearTimeout(restartT);
-  if(!auto||!rec||busy||listening||speaking||talking)return;
+  if(!auto||!rec||busy||listening||speaking||talking||ssCount>0)return;
   restartT=setTimeout(function(){
-    if(!auto||busy||listening||speaking||talking)return;
+    if(!auto||busy||listening||speaking||talking||ssCount>0)return;
     try{rec.start()}catch(e){}
   },800);
 }
@@ -204,6 +204,7 @@ function setupRec(){
 setupRec();
 
 function ssSay(chunk){
+  if(!SS)return;
   var u=new SpeechSynthesisUtterance(chunk);
   u.lang=/[\u0d00-\u0d7f]/.test(chunk)?'ml-IN':(/[\u0600-\u06ff]/.test(chunk)?'ar-SA':'en-IN');
   u.onstart=function(){speaking=true;talk(true)};
@@ -213,47 +214,12 @@ function ssSay(chunk){
   };
   ssCount++;SS.speak(u);
 }
-function speak(text){
-  if(!SS){
-    talk(true);clearTimeout(talkTimer);
-    talkTimer=setTimeout(function(){talk(false);maybeListen()},Math.min(9000,text.length*45));
-    return;
-  }
-  var parts=text.match(/[^.!?।\n]+[.!?।]*\s*/g)||[text];
-  var buf='';
-  parts.forEach(function(p){
-    buf+=p;
-    if(buf.length>=25){ssSay(buf.trim());buf=''}
-  });
-  if(buf.trim())ssSay(buf.trim());
-}
 function stopAll(){
   if(SS)try{SS.cancel()}catch(e){}
   ssCount=0;speaking=false;clearTimeout(talkTimer);talk(false);
 }
+function clean(t){return String(t).replace(/[*#_`]/g,'')}
 
-function onOk(r){
-  busy=false;
-  if(r&&r.ok){
-    var ans=String(r.text).replace(/[*#_`]/g,'').trim();
-    if(!ans)ans='ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കാമോ?';
-    ansEl.textContent=ans;sub.scrollTop=0;
-    history.push({role:'model',text:ans});
-    setStatus('പറയുന്നു…');
-    speak(ans);
-  }else{
-    history.pop();
-    ansEl.textContent=(r&&r.msg==='limit')?'സൗജന്യ പരിധി തീർന്നു. അല്പം കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ.':'ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കൂ.';
-    setStatus('');
-  }
-  refresh();
-  if(!(r&&r.ok))maybeListen();
-}
-function onFail(){
-  busy=false;history.pop();
-  ansEl.textContent='ക്ഷമിക്കണം, ബന്ധപ്പെടാൻ കഴിഞ്ഞില്ല. ഒന്നുകൂടി ചോദിക്കൂ.';
-  setStatus('');refresh();maybeListen();
-}
 function ask(text){
   text=(text||'').trim();
   if(!text||busy)return;
@@ -262,11 +228,76 @@ function ask(text){
   ansEl.textContent='';setStatus('ആലോചിക്കുന്നു…');
   history.push({role:'user',text:text});
   while(history.length>9)history.splice(0,2);
-    if(SS)ssSay('ഒരു നിമിഷം');
-  fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(history)})
-    .then(function(x){return x.json()})
-    .then(onOk)
-    .catch(onFail);
+
+  var full='',buffer='',first=true,st={n:0,did:false};
+  function pump(final){
+    var txt=clean(full),rest=txt.slice(st.n),cut=-1,m;
+    if(!st.did){
+      var re1=/[,،;:]\s|[.!?।]+\s|\n/g;
+      while((m=re1.exec(rest))){if(m.index>=22){cut=m.index+m[0].length;break}}
+    }else{
+      var re=/[.!?।]+\s|\n/g;
+      while((m=re.exec(rest)))cut=m.index+m[0].length;
+    }
+    if(final)cut=rest.length;
+    if(cut>0){
+      var chunk=rest.slice(0,cut).trim();
+      st.n+=cut;
+      if(chunk){ssSay(chunk);st.did=true}
+    }
+  }
+  function fail(code){
+    busy=false;history.pop();
+    ansEl.textContent=(code===429)?'സൗജന്യ പരിധി തീർന്നു. അല്പം കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ.':'ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കൂ.';
+    setStatus('');refresh();maybeListen();
+  }
+  function finish(){
+    var ans=clean(full).trim();
+    if(!ans){fail(0);return}
+    ansEl.textContent=ans;
+    history.push({role:'model',text:ans});
+    pump(true);
+    busy=false;refresh();
+    if(!SS){
+      talk(true);clearTimeout(talkTimer);
+      talkTimer=setTimeout(function(){talk(false);setStatus('');maybeListen()},Math.min(9000,ans.length*45));
+    }else{
+      if(ssCount===0){setStatus('');maybeListen()}
+    }
+  }
+  function handle(line){
+    if(line.indexOf('data:')!==0)return;
+    try{
+      var j=JSON.parse(line.slice(5).trim());
+      var ps=j.candidates&&j.candidates[0]&&j.candidates[0].content&&j.candidates[0].content.parts;
+      if(ps)ps.forEach(function(p){if(p.text)full+=p.text});
+    }catch(e){}
+  }
+
+  fetch(API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(history)})
+  .then(function(resp){
+    if(!resp.ok){fail(resp.status);return}
+    var reader=resp.body.getReader(),dec=new TextDecoder();
+    function read(){
+      reader.read().then(function(r){
+        if(r.done){
+          if(buffer)handle(buffer.trim());
+          finish();return;
+        }
+        buffer+=dec.decode(r.value,{stream:true});
+        var lines=buffer.split('\n');buffer=lines.pop();
+        lines.forEach(function(l){handle(l.trim())});
+        if(full){
+          ansEl.textContent=clean(full);sub.scrollTop=sub.scrollHeight;
+          if(first){first=false;setStatus('പറയുന്നു…')}
+          pump(false);
+        }
+        read();
+      }).catch(function(){fail(0)});
+    }
+    read();
+  })
+  .catch(function(){fail(0)});
 }
 
 micBtn.onclick=function(){
