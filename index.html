@@ -262,6 +262,7 @@ function ask(text){
   ansEl.textContent='';setStatus('ആലോചിക്കുന്നു…');
   history.push({role:'user',text:text});
   while(history.length>9)history.splice(0,2);
+    if(SS)ssSay('ഒരു നിമിഷം');
   fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(history)})
     .then(function(x){return x.json()})
     .then(onOk)
