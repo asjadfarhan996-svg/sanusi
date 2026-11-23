@@ -73,13 +73,13 @@ var LANG='ml';
 var T={
  ml:{talk:'പറയുന്നു…',think:'ആലോചിക്കുന്നു…',listen:'കേൾക്കുന്നു… ചോദിക്കൂ',wait:'തയ്യാർ',idle:'താഴെയുള്ള ബട്ടൺ അമർത്തൂ',
   micOn:'🎤 സംസാരിച്ചു തുടങ്ങൂ',micOff:'⏹ മൈക്ക് നിർത്തുക',camOn:'📷 ക്യാമറ ഓൺ',camOff:'📷 ക്യാമറ ഓഫ്',full:'⛶ പൂർണ സ്ക്രീൻ',lang:'🌐 ഭാഷ: സ്വയം',
-  hello:'എന്തൊക്കെയുണ്ട് buddy സുഖമല്ലേ?',
+  hello:'Hello buddy',
   quota:'ഇപ്പോൾ ഒരുപാട് പേർ ചോദിക്കുന്നു. ഒരു നിമിഷം കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ.',err:'ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കൂ.',
   deny:'മൈക്ക് ഉപയോഗിക്കാൻ അനുമതി കിട്ടിയില്ല. ബ്രൗസറിന്റെ അനുമതി നൽകൂ.',nosr:'ഈ ബ്രൗസറിൽ ശബ്ദം തിരിച്ചറിയില്ല. ക്രോം ഉപയോഗിക്കൂ.',
   camdeny:'ക്യാമറ ഉപയോഗിക്കാൻ അനുമതി കിട്ടിയില്ല.',nocam:'ഈ ബ്രൗസറിൽ ക്യാമറ ലഭ്യമല്ല.'},
  en:{talk:'Speaking…',think:'Thinking…',listen:'Listening… ask me',wait:'Ready',idle:'Press the button below',
   micOn:'🎤 Start talking',micOff:'⏹ Stop mic',camOn:'📷 Camera on',camOff:'📷 Camera off',full:'⛶ Full screen',lang:'🌐 English only',
-  hello:'Hey buddy, how are you doing?',
+  hello:'Hello buddy',
   quota:'Many people are asking right now. Please try again in a moment.',err:'Sorry, I could not get an answer. Please ask again.',
   deny:'Microphone permission was not given. Please allow it in the browser.',nosr:'This browser cannot recognise speech. Please use Chrome.',
   camdeny:'Camera permission was not given.',nocam:'Camera is not available in this browser.'}
@@ -322,7 +322,7 @@ var hereN=0,goneN=0,personHere=false,lastGreet=0;
 function lookAt(frac){lookT=Math.max(-1,Math.min(1,-(frac-.5)*2));}
 function greet(){
  var now=Date.now();
- if(busy||talking||ssCount>0||now-lastGreet<30000)return;
+ if(busy||talking||ssCount>0||now-lastGreet<3000)return;
  lastGreet=now;
  greetUntil=performance.now()/1000+4;
  try{if(rec&&listening)rec.abort();}catch(e){}
@@ -332,7 +332,7 @@ function greet(){
 function seen(yes){
  if(yes){hereN++;goneN=0;}else{goneN++;hereN=0;}
  if(!personHere&&hereN>=2){personHere=true;greet();}
- if(personHere&&goneN>=10){personHere=false;lookT=0;}
+ if(personHere&&goneN>=6){personHere=false;lookT=0;}
  if(!yes&&goneN>=4)lookT=0;
 }
 function camTick(){
@@ -364,7 +364,7 @@ function camStart(){
   if('FaceDetector' in window){try{det=new FaceDetector({fastMode:true,maxDetectedFaces:1});}catch(e){det=null;}}
   cvs.width=64;cvs.height=48;cx=cvs.getContext('2d',{willReadFrequently:true});
   prevG=null;hereN=0;goneN=0;personHere=false;
-  camTimer=setInterval(camTick,500);
+  camTimer=setInterval(camTick,300);
   labels();
  })
  .catch(function(){aEl.textContent=tx().camdeny;});
