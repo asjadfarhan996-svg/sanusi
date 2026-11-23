@@ -72,14 +72,14 @@ var $=function(i){return document.getElementById(i)};
 var LANG='ml';
 var T={
  ml:{talk:'പറയുന്നു…',think:'ആലോചിക്കുന്നു…',listen:'കേൾക്കുന്നു… ചോദിക്കൂ',wait:'തയ്യാർ',idle:'താഴെയുള്ള ബട്ടൺ അമർത്തൂ',
-  micOn:'🎤 സംസാരിച്ചു തുടങ്ങൂ',micOff:'⏹ മൈക്ക് നിർത്തുക',camOn:'📷 ക്യാമറ ഓൺ',camOff:'📷 ക്യാമറ ഓഫ്',full:'⛶ പൂർണ സ്ക്രീൻ',lang:'🌐 English',
-  hello:'നമസ്കാരം! ഞാൻ സനൂസി. എന്തെങ്കിലും ചോദിക്കാനുണ്ടോ?',
+  micOn:'🎤 സംസാരിച്ചു തുടങ്ങൂ',micOff:'⏹ മൈക്ക് നിർത്തുക',camOn:'📷 ക്യാമറ ഓൺ',camOff:'📷 ക്യാമറ ഓഫ്',full:'⛶ പൂർണ സ്ക്രീൻ',lang:'🌐 ഭാഷ: സ്വയം',
+  hello:'എന്തൊക്കെയുണ്ട് buddy സുഖമല്ലേ?',
   quota:'ഇപ്പോൾ ഒരുപാട് പേർ ചോദിക്കുന്നു. ഒരു നിമിഷം കഴിഞ്ഞ് വീണ്ടും ചോദിക്കൂ.',err:'ക്ഷമിക്കണം, ഉത്തരം കിട്ടിയില്ല. ഒന്നുകൂടി ചോദിക്കൂ.',
   deny:'മൈക്ക് ഉപയോഗിക്കാൻ അനുമതി കിട്ടിയില്ല. ബ്രൗസറിന്റെ അനുമതി നൽകൂ.',nosr:'ഈ ബ്രൗസറിൽ ശബ്ദം തിരിച്ചറിയില്ല. ക്രോം ഉപയോഗിക്കൂ.',
   camdeny:'ക്യാമറ ഉപയോഗിക്കാൻ അനുമതി കിട്ടിയില്ല.',nocam:'ഈ ബ്രൗസറിൽ ക്യാമറ ലഭ്യമല്ല.'},
  en:{talk:'Speaking…',think:'Thinking…',listen:'Listening… ask me',wait:'Ready',idle:'Press the button below',
-  micOn:'🎤 Start talking',micOff:'⏹ Stop mic',camOn:'📷 Camera on',camOff:'📷 Camera off',full:'⛶ Full screen',lang:'🌐 മലയാളം',
-  hello:'Hello! I am Sanusi. Ask me anything!',
+  micOn:'🎤 Start talking',micOff:'⏹ Stop mic',camOn:'📷 Camera on',camOff:'📷 Camera off',full:'⛶ Full screen',lang:'🌐 English only',
+  hello:'Hey buddy, how are you doing?',
   quota:'Many people are asking right now. Please try again in a moment.',err:'Sorry, I could not get an answer. Please ask again.',
   deny:'Microphone permission was not given. Please allow it in the browser.',nosr:'This browser cannot recognise speech. Please use Chrome.',
   camdeny:'Camera permission was not given.',nocam:'Camera is not available in this browser.'}
@@ -326,7 +326,8 @@ function greet(){
  lastGreet=now;
  greetUntil=performance.now()/1000+4;
  try{if(rec&&listening)rec.abort();}catch(e){}
- ssSay(tx().hello);
+ aEl.textContent=tx().hello;
+ (tx().hello.match(/[A-Za-z]+|[^A-Za-z]+/g)||[]).forEach(function(p){p=p.trim();if(p)ssSay(p);});
 }
 function seen(yes){
  if(yes){hereN++;goneN=0;}else{goneN++;hereN=0;}
