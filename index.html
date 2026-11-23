@@ -118,6 +118,7 @@ function face(k,bl,lk){
 /* ---------- state ---------- */
 var hist=[];
 var auto=false,busy=false,listening=false,talking=false,ssCount=0,restartT=null,greetUntil=0;
+var silT=null,lastTx='';
 var SS=window.speechSynthesis;
 var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
 var rec=null;
@@ -167,10 +168,14 @@ function labels(){
 
 /* ---------- speech out ---------- */
 function pickVoice(l){
- var v=SS.getVoices(),p=l.slice(0,2).toLowerCase(),i;
- for(i=0;i<v.length;i++){if(v[i].lang.replace('_','-').toLowerCase()===l.toLowerCase())return v[i];}
- for(i=0;i<v.length;i++){if(v[i].lang.toLowerCase().indexOf(p)===0)return v[i];}
- return null;
+ var v=SS.getVoices(),p=l.slice(0,2).toLowerCase(),i,vl,best=null;
+ for(i=0;i<v.length;i++){
+  vl=v[i].lang.replace('_','-').toLowerCase();
+  if(vl===l.toLowerCase()||vl.indexOf(p)===0){
+   if(!best||(v[i].localService&&!best.localService))best=v[i];
+  }
+ }
+ return best;
 }
 function ssSay(txt){
  if(!SS||!txt)return;
@@ -179,7 +184,7 @@ function ssSay(txt){
  u.lang=l; var v=pickVoice(l); if(v)u.voice=v; u.rate=1; u.pitch=1.05;
  u.onend=u.onerror=function(){
   ssCount=Math.max(0,ssCount-1);
-  if(ssCount===0){talking=false;setTimeout(maybeListen,500);}
+  if(ssCount===0){talking=false;setTimeout(maybeListen,200);}
  };
  ssCount++; talking=true; SS.speak(u);
 }
@@ -194,7 +199,7 @@ function maybeListen(){
  restartT=setTimeout(function(){
   if(!auto||busy||listening||talking||ssCount>0)return;
   try{rec.lang=recLang();rec.start();}catch(e){}
- },800);
+ },300);
 }
 function t0g(){return performance.now()/1000<greetUntil;}
 function setupRec(){
@@ -208,14 +213,17 @@ function setupRec(){
  rec.onresult=function(e){
   var s='',fin=false,i;
   for(i=e.resultIndex;i<e.results.length;i++){s+=e.results[i][0].transcript;if(e.results[i].isFinal)fin=true;}
-  qEl.textContent=s;
-  if(fin)ask(s);
+  qEl.textContent=s; lastTx=s;
+  clearTimeout(silT);
+  if(fin){ask(s);return;}
+  silT=setTimeout(function(){if(lastTx&&!busy)ask(lastTx);},450);
  };
 }
 
 /* ---------- ask ---------- */
 function ask(text){
  text=(text||'').trim();
+ clearTimeout(silT); lastTx='';
  if(!text||busy)return;
  try{if(rec)rec.abort();}catch(e){}
  busy=true; qEl.textContent=text; aEl.textContent='';
@@ -225,7 +233,7 @@ function ask(text){
 
  function speakChunk(c){c=clean(c);if(c)ssSay(c);}
  function pump(final){
-  var re=first?/[,.!?;:।،؟…]/:/[.!?।؟…]/,min=first?22:12,i,cut;
+  var re=first?/[,.!?;:।،؟…]/:/[.!?।؟…]/,min=first?14:12,i,cut;
   while(true){
    cut=-1;
    for(i=min-1;i<pend.length;i++){if(re.test(pend.charAt(i))){cut=i;break;}}
@@ -291,7 +299,7 @@ micBtn.onclick=function(){
  auto=!auto; prime();
  if(auto){wake();if(!rec)setupRec();maybeListen();}
  else{
-  clearTimeout(restartT);
+  clearTimeout(restartT);clearTimeout(silT);
   try{rec.abort();}catch(e){}
   try{SS.cancel();}catch(e){}
   ssCount=0;talking=false;
